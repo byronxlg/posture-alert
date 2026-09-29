@@ -50,7 +50,7 @@ npm test             # unit tests (vitest)
 npm run typecheck
 npm run build
 npm run check:ui     # headless Chromium with a fake camera; screenshots in tmp/
-npm run eval         # accuracy eval (needs ffmpeg; downloads ~400 MB of clips)
+npm run eval         # accuracy eval (Node 22.18+ and ffmpeg; downloads ~400 MB of clips)
 ```
 
 Deploys to GitHub Pages from `main` via `.github/workflows/deploy.yml`. Runbook: [runbook/](runbook/).
