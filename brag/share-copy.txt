@@ -1,0 +1,1 @@
+Posture Alert: a webcam posture monitor that chimes when you slouch. Pose tracking runs in the browser and the video never leaves your device. https://byronxlg.com/posture-alert/

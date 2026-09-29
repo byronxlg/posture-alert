@@ -3,6 +3,8 @@
 A webcam posture monitor that chimes when you slouch. Live at
 **https://byronxlg.com/posture-alert/**.
 
+[![Posture Alert in 20 seconds](https://byronxlg.com/posture-alert/assets/brag.jpg)](https://byronxlg.com/posture-alert/assets/brag.mp4)
+
 Pose tracking runs in the browser with MediaPipe Pose Landmarker; the video never leaves your
 device, and nothing is stored except your settings.
 

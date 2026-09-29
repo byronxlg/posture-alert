@@ -18,6 +18,7 @@ state is one revert away. No local deploys.
 | `src/**`, `index.html`, `public/**`, `vite.config.ts` | `deploy.yml`: `npm ci`, `npm run build`, upload, `deploy-pages` | push to `main` | the deploy step finishes, 1 to 2 min | run green; smoke test below |
 | `package*.json` | same | push to `main` | same | run green |
 | `eval/**`, `README.md`, `runbook/**` | none (built into nothing) | push to `main` | on GitHub immediately | n/a |
+| Launch video (`brag/`, `public/assets/brag.*`) | `deploy.yml` (the copies in `public/assets/`) | push to `main` | the deploy step finishes | `curl -sI https://byronxlg.com/posture-alert/assets/brag.mp4` is 200; the README poster shows the new frame |
 
 ## Before merging a detection change
 
@@ -47,6 +48,21 @@ node scripts/check-ui.mjs https://byronxlg.com/posture-alert/
 
 Pass: the run is `success`, every URL is 200, and `check-ui.mjs` prints `monitoring` with
 frames with a pose for all three runs and no console errors.
+
+## Regenerating the launch video
+
+When the app changes visibly. The footage is the real app in sample mode, recorded with
+Playwright against `vite preview`, then composed with Hyperframes (`/brag`).
+
+1. `npm run build`, then record `?sample` at 1440x900 with Playwright `recordVideo` and crop to
+   16:9: `ffmpeg -ss 7 -t 11 -i <recording>.webm -vf "crop=1440:810:0:20,scale=1920:1080,fps=30"
+   -c:v libx264 -crf 18 -pix_fmt yuv420p -an brag/composition/assets/app.mp4` (monitoring starts
+   about 7 s into the recording; check the Upright / Slouching flips land in the first 10 s).
+2. Edit `brag/composition/index.html` if the copy changed; `npx hyperframes check` in
+   `brag/composition/` must pass, then `npx hyperframes render --quality high --output ../brag.mp4`.
+3. Pull the poster (`ffmpeg -ss 8.5 -i brag.mp4 -frames:v 1 -q:v 2 brag.jpg`), bake it as frame 0
+   (brag skill, step 4), copy `brag/brag.mp4` and `brag/brag.jpg` to `public/assets/`, commit,
+   push, and check the curl in the table above.
 
 ## Rollback
 

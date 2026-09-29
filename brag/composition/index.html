@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1920, height=1080" />
+<title>posture-alert - brag</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=block" />
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="assets/audio-rms.js"></script>
+<style>
+  :root {
+    --mist: #dde5e3; --paper: #f4f7f6; --ink: #173036; --muted: #587075; --good: #1f8a70; --bad: #d1344b; --stage: #10242a;
+    --display: "Bricolage Grotesque", system-ui, sans-serif; --body: "Atkinson Hyperlegible", system-ui, sans-serif;
+  }
+  body { margin: 0; background: var(--mist); color: var(--ink); font-family: var(--body); }
+  #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--mist); }
+  .clip { position: absolute; inset: 0; box-sizing: border-box; }
+  #vignette { position: absolute; inset: 0; pointer-events: none; opacity: 0.4; background: radial-gradient(ellipse at 50% 50%, rgba(23,48,54,0) 55%, rgba(23,48,54,0.16) 100%); }
+
+  /* scene 1: hook */
+  #s1 { display: flex; align-items: center; justify-content: center; gap: 110px; padding: 0 200px; }
+  #hook { margin: 0; font: 800 132px/0.98 var(--display); letter-spacing: -4px; max-width: 980px; color: var(--ink); }
+  #hero { flex: none; width: 420px; height: 472px; }
+  .plumb-line { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 4 6; }
+  .plumb-bob { fill: var(--ink); }
+  .up circle { fill: var(--ink); } .up path { fill: none; stroke: var(--ink); stroke-width: 26; stroke-linecap: round; }
+  .ghost circle, .ghost path { fill: none; stroke: var(--bad); stroke-width: 4; stroke-dasharray: 8 7; }
+
+  /* scene 2: the app */
+  #app { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; transform-origin: 38% 4%; }
+  #cap { position: absolute; left: 64px; bottom: 56px; padding: 14px 24px; border-radius: 999px; background: var(--ink); color: var(--paper); font: 700 30px var(--body); opacity: 0; }
+
+  /* scene 3: facts */
+  #s3 { display: flex; flex-direction: column; justify-content: center; padding: 0 220px; gap: 34px; }
+  .fact { margin: 0; font: 700 64px/1.12 var(--display); letter-spacing: -1.5px; color: var(--ink); opacity: 0; display: flex; gap: 30px; align-items: baseline; }
+  .fact .n { flex: none; width: 58px; height: 58px; border-radius: 50%; border: 3px solid var(--ink); font: 700 30px/52px var(--body); text-align: center; letter-spacing: 0; transform: translateY(-8px); }
+  .fact .g { color: var(--good); }
+
+  /* scene 4: outro */
+  #s4 { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; }
+  #mark { display: flex; align-items: center; gap: 30px; margin: 0; opacity: 0; font: 800 124px/1 var(--display); letter-spacing: -3px; color: var(--ink); }
+  #mark svg { width: 124px; height: 124px; }
+  #tag { font-size: 40px; margin: 0; opacity: 0; color: var(--ink); text-align: center; }
+  #url { font: 700 36px var(--body); margin: 18px 0 0; opacity: 0; color: var(--good); }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="posture-alert-brag" data-start="0" data-width="1920" data-height="1080" data-duration="20" data-fps="30">
+  <section id="s1" class="clip" data-start="0" data-duration="3.2" data-track-index="1">
+    <h1 id="hook">A nudge when you start to slouch.</h1>
+    <svg id="hero" viewBox="0 0 320 360" aria-hidden="true">
+      <line x1="170" y1="18" x2="170" y2="330" class="plumb-line" />
+      <circle cx="170" cy="336" r="9" class="plumb-bob" />
+      <g class="ghost" id="ghost"><circle cx="222" cy="112" r="30" /><path d="M150 300 C 150 230, 170 180, 205 150" /></g>
+      <g class="up"><circle cx="176" cy="78" r="30" /><path d="M150 300 C 152 230, 160 170, 168 118" /></g>
+    </svg>
+  </section>
+
+  <video id="app" muted playsinline data-start="3.2" data-duration="9.8" data-media-start="0.5" data-track-index="2" src="assets/app.mp4"></video>
+  <section id="s2" class="clip" data-start="3.2" data-duration="9.8" data-track-index="1">
+    <p id="cap">The real app, running its sample video</p>
+  </section>
+
+  <section id="s3" class="clip" data-start="13" data-duration="3.6" data-track-index="1">
+    <p class="fact" id="f1"><span class="n">1</span><span>The video never leaves your device.</span></p>
+    <p class="fact" id="f2"><span class="n">2</span><span>Sit up straight for three seconds: that is your baseline.</span></p>
+    <p class="fact" id="f3"><span class="n">3</span><span><span class="g">83%</span> accurate on 24 labelled clips, no false alerts.</span></p>
+  </section>
+
+  <section id="s4" class="clip" data-start="16.6" data-duration="3.4" data-track-index="1">
+    <p id="mark"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#173036" /><path d="M16 7 L16 25" fill="none" stroke="#f4f7f6" stroke-width="3" stroke-linecap="round" /></svg>Posture Alert</p>
+    <p id="tag">A webcam posture monitor that chimes when you slouch.</p>
+    <p id="url">byronxlg.com/posture-alert/</p>
+  </section>
+
+  <div id="vignette"></div>
+
+  <audio id="music" data-start="0" data-duration="20" data-track-index="10" data-volume="0.30" src="assets/music/bed.mp3"></audio>
+  <audio id="sfx-land" data-start="3.55" data-duration="0.2" data-track-index="11" data-volume="0.45" src="assets/sfx/impact/impactSoft_medium_001.ogg"></audio>
+  <audio id="sfx-mark" data-start="16.93" data-duration="0.15" data-track-index="12" data-volume="0.45" src="assets/sfx/interface/bong_001.ogg"></audio>
+</div>
+
+<script>
+  document.fonts.ready.then(function () {
+    var tl = gsap.timeline({ paused: true });
+    function up(sel, at, d) { tl.fromTo(sel, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: d || 0.5, ease: "power2.out" }, at); }
+
+    // Scene 1: hook (0 - 3.2). Seven words, settled 0.8 to 2.85.
+    up("#hook", 0.2, 0.6);
+    tl.fromTo("#hero", { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.7, ease: "power2.out" }, 0.35);
+    tl.fromTo("#ghost", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 1.2);
+    tl.to("#s1 > *", { opacity: 0, duration: 0.35, ease: "power1.in" }, 2.85);
+
+    // Scene 2: the app (3.2 - 13). beat-locked: 3.55 footage lands.
+    tl.fromTo("#app", { scale: 0.92, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "power3.out" }, 3.55);
+    tl.to("#app", { scale: 1.06, duration: 8.4, ease: "none" }, 4.15);
+    up("#cap", 4.0); tl.to("#cap", { opacity: 0, duration: 0.3 }, 6.6);
+    tl.to("#app", { opacity: 0, duration: 0.4 }, 12.6);
+
+    // Scene 3: facts (13 - 16.6). beat-locked: 13.11 first line.
+    up("#f1", 13.11); up("#f2", 13.75); up("#f3", 14.4);
+    tl.to("#s3 .fact", { opacity: 0, duration: 0.3 }, 16.25);
+
+    // Scene 4: outro (16.6 - 20). beat-locked: 16.93 wordmark.
+    tl.fromTo("#mark", { scale: 0.94, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.6)" }, 16.93);
+    up("#tag", 17.47); up("#url", 18.01);
+
+    // Audio-reactive: RMS breathes the vignette. Pre-extracted, sampled per frame.
+    var vig = document.getElementById("vignette");
+    function draw(rms) { vig.style.opacity = (0.3 + Math.min(1, rms * 1.4) * 0.5).toFixed(3); }
+    for (var f = 0; f < AUDIO_RMS.length; f++) {
+      tl.call((function (v) { return function () { draw(v); }; })(AUDIO_RMS[f]), [], f / 30);
+    }
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines["posture-alert-brag"] = tl;
+    if (window.__hfForceTimelineRebind) window.__hfForceTimelineRebind();
+  });
+</script>
+</body>
+</html>
