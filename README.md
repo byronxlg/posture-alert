@@ -13,8 +13,10 @@ device, and nothing is stored except your settings.
 - Tracks your head and shoulders from a laptop webcam (front view) or a side-on camera.
 - Calibration: sit up straight for three seconds and that becomes your baseline.
 - When bad posture lasts past the alert delay: a chime (with volume), a system notification if
-  the tab is in the background, and the tab title and icon change.
-- Live skeleton and metrics over the video, a status and slouch meter, session stats (share of
+  the tab is in the background, and the tab title and icon change. Monitoring keeps running
+  in a background tab: browsers pause animation frames there, so a worker timer drives the
+  loop at about 2 frames a second until the tab is visible again.
+- Live skeleton and metrics over the video (under it on a phone), a status and slouch meter, session stats (share of
   time upright, alerts) and a timeline of the last hour.
 - Settings (kept in localStorage): sensitivity, alert delay, sound and volume, notifications,
   break reminders, skeleton on or off.

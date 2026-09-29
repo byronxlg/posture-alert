@@ -41,13 +41,21 @@ Not a merge gate. Proves the page and its heavy assets are served.
 
 ```sh
 gh run list --workflow deploy.yml --limit 1
-for u in "" models/pose_landmarker_full.task wasm/vision_wasm_internal.wasm sample/slouch-then-sit-up.mp4; do
+for u in "" favicon.svg og.jpg models/pose_landmarker_full.task wasm/vision_wasm_internal.wasm sample/slouch-then-sit-up.mp4; do
   curl -s -o /dev/null -w "%{http_code} /posture-alert/$u\n" "https://byronxlg.com/posture-alert/$u"; done
 node scripts/check-ui.mjs https://byronxlg.com/posture-alert/
 ```
 
 Pass: the run is `success`, every URL is 200, and `check-ui.mjs` prints `monitoring` with
-frames with a pose for all three runs and no console errors.
+frames with a pose for all three runs, a `hidden-tab` line with frames still being processed,
+and no console errors.
+
+## Regenerating the share image
+
+`public/og.jpg` (the `og:image` link preview) is a 1200x630 screenshot of the app in sample mode
+while it reads Upright. Retake it when the app changes visibly: `npm run dev`, then a Playwright
+screenshot of `http://localhost:5173/posture-alert/?sample` at a 1200x630 viewport, JPEG quality
+about 88.
 
 ## Regenerating the launch video
 
