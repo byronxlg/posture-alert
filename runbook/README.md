@@ -20,8 +20,8 @@ GitHub Pages, project site for `byronxlg/posture-alert`, published from the `dis
 `deploy.yml` on every push to `main`, served at `byronxlg.com/posture-alert/` through the user
 site's custom domain. No server, no secrets, no host on this Mac. The pose model
 (`public/models/pose_landmarker_full.task`) and the sample clip are committed; the wasm runtime
-is copied from `node_modules` at build time (`scripts/copy-wasm.mjs`). Fonts load from Google
-Fonts; if that fails the page falls back to system fonts and still works.
+is copied from `node_modules` at build time (`scripts/copy-wasm.mjs`). The page uses the
+system font stack; there are no third-party requests at runtime.
 
 ## Objectives
 

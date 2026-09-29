@@ -6,7 +6,7 @@ const EDGES: [number, number][] = [
   [11, 23], [12, 24], [23, 24],
 ];
 const JOINTS = [0, 7, 8, 11, 12, 13, 14, 15, 16, 23, 24];
-const COLOR: Record<Verdict, string> = { good: "#43d6a8", bad: "#ff5a6e", unknown: "#c9d6d8" };
+const COLOR: Record<Verdict, string> = { good: "#43d6a8", bad: "#ffab2e", unknown: "#c9d6d8" };
 
 /** Draws the skeleton over the video; the canvas matches the video's intrinsic size. */
 export function drawSkeleton(g: CanvasRenderingContext2D, lm: Point[] | null, verdict: Verdict, mirror: boolean) {
