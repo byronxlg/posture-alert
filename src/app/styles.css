@@ -212,7 +212,7 @@ select { padding: 0.45rem 0.6rem; border-radius: 8px; border: 1.5px solid var(--
 @media (max-width: 860px) {
   .hero { grid-template-columns: 1fr; }
   .hero-art { order: -1; width: 150px; justify-self: start; }
-  .work { display: flex; flex-direction: column; }
+  .work { display: flex; flex-direction: column; align-items: stretch; }
   .stage-col { width: 100%; }
   /* On a phone the overlay would cover the face; the numbers sit under the video instead. */
   .readout {
