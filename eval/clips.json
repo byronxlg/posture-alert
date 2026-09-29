@@ -1,0 +1,34 @@
+{
+  "note": "Labels were assigned by watching frames sampled at 1 fps (8 per clip for steady clips). Times outside every segment are ignored (transitions, empty chair, stretching, close-ups). holdout clips were chosen before any tuning and are never used to pick thresholds.",
+  "licenses": {
+    "pexels": "Pexels License, https://www.pexels.com/license/ (free to use and modify, no attribution required, not for resale as-is)",
+    "mixkit": "Mixkit Stock Video Free License, https://mixkit.co/license/#videoFree (free to use in projects, not for redistribution as standalone files)"
+  },
+  "clips": [
+    { "id": "px8217040", "source": "pexels", "page": "https://www.pexels.com/video/8217040/", "view": "front", "holdout": false, "segments": [[0, 7.2, "good"]], "notes": "man upright in an armchair, full body" },
+    { "id": "px8102314", "source": "pexels", "page": "https://www.pexels.com/video/8102314/", "view": "front", "holdout": false, "segments": [[0, 21, "good"]], "notes": "woman upright in office chair, camera dollies in (scale change)" },
+    { "id": "mk49927", "source": "mixkit", "page": "https://mixkit.co/free-stock-video/woman-working-in-front-at-home-on-a-computer-49927/", "view": "front", "holdout": false, "segments": [[0, 9.6, "good"]], "notes": "woman upright at laptop, moving camera" },
+    { "id": "px7504759", "source": "pexels", "page": "https://www.pexels.com/video/7504759/", "view": "front", "holdout": false, "segments": [[7, 15.8, "good"]], "notes": "empty chair, man walks in and sits upright; first 7 s ignored" },
+    { "id": "mk48503", "source": "mixkit", "page": "https://mixkit.co/free-stock-video/intensely-focused-young-man-working-on-a-computer-48503/", "view": "three-quarter", "holdout": false, "segments": [], "notes": "excluded as ambiguous: first labelled good (upright torso), but a closer look at frames shows him looking down at the keyboard with the neck flexed about 40 degrees; the detector calls it bad" },
+    { "id": "px4492721", "source": "pexels", "page": "https://www.pexels.com/video/4492721/", "view": "front", "holdout": false, "segments": [[0, 10.4, "good"]], "notes": "woman on a video call, upright, waving (hands occlude)" },
+    { "id": "px7223728", "source": "pexels", "page": "https://www.pexels.com/video/7223728/", "view": "front", "holdout": false, "segments": [[0, 11.6, "good"]], "notes": "woman upright behind a laptop, small in frame" },
+    { "id": "px9033091", "source": "pexels", "page": "https://www.pexels.com/video/9033091/", "view": "three-quarter", "holdout": false, "segments": [[0, 5.6, "good"]], "notes": "woman upright on a video call" },
+    { "id": "px6586298", "source": "pexels", "page": "https://www.pexels.com/video/6586298/", "view": "front", "holdout": true, "segments": [[0, 12, "good"]], "notes": "webcam-style talking head, upright" },
+    { "id": "px4052826", "source": "pexels", "page": "https://www.pexels.com/video/4052826/", "view": "front", "holdout": true, "segments": [[0, 28.2, "good"]], "notes": "webcam-style, man on a couch behind a laptop, upright" },
+    { "id": "px5125886", "source": "pexels", "page": "https://www.pexels.com/video/5125886/", "view": "front", "holdout": false, "segments": [[0, 10, "bad"], [21, 29.5, "good"]], "notes": "slumped with head propped on hand, then rubs neck, then sits up" },
+    { "id": "mk50767", "source": "mixkit", "page": "https://mixkit.co/free-stock-video/a-young-man-engrossed-in-the-laptop-work-50767/", "view": "front", "holdout": false, "segments": [[0, 7, "bad"]], "notes": "man on couch, head dropped toward laptop" },
+    { "id": "mk5416", "source": "mixkit", "page": "https://mixkit.co/free-stock-video/man-thinks-hard-while-working-on-laptop-from-home-5416/", "view": "front", "holdout": false, "segments": [[0, 11.6, "bad"]], "notes": "man looking down at laptop, neck flexed (tech neck)" },
+    { "id": "px8901143", "source": "pexels", "page": "https://www.pexels.com/video/8901143/", "view": "front", "holdout": false, "segments": [[0, 17, "bad"]], "notes": "head on desk, then leaning on the desk with chin on hand; vertical close-up" },
+    { "id": "mk24055", "source": "mixkit", "page": "https://mixkit.co/free-stock-video/tired-man-sleeping-at-his-desk-in-the-office-24055/", "view": "front", "holdout": false, "segments": [[0, 12.2, "bad"]], "notes": "head down on the desk, asleep" },
+    { "id": "px8136076", "source": "pexels", "page": "https://www.pexels.com/video/8136076/", "view": "three-quarter", "holdout": false, "segments": [[0, 15.2, "bad"]], "notes": "leaning over the laptop typing, then head in hands" },
+    { "id": "px6322165", "source": "pexels", "page": "https://www.pexels.com/video/6322165/", "view": "front", "holdout": true, "segments": [[0, 11.4, "bad"]], "notes": "hunched on a couch over a laptop on the knees; vertical" },
+    { "id": "mk48610", "source": "mixkit", "page": "https://mixkit.co/free-stock-video/office-worker-falling-asleep-at-their-desk-48610/", "view": "front", "holdout": true, "segments": [[0, 15.2, "bad"]], "notes": "head propped on hand, tilted, dozing" },
+    { "id": "px8512971", "source": "pexels", "page": "https://www.pexels.com/video/8512971/", "view": "side", "holdout": true, "segments": [[0, 10.8, "good"]], "notes": "woman upright at laptop, profile" },
+    { "id": "px10374908", "source": "pexels", "page": "https://www.pexels.com/video/10374908/", "view": "side", "holdout": false, "segments": [[0, 2.8, "good"], [7.5, 11.5, "good"]], "notes": "upright at desk, stretches with hands behind head in between (ignored)" },
+    { "id": "px7504607", "source": "pexels", "page": "https://www.pexels.com/video/7504607/", "view": "side", "holdout": false, "segments": [[7, 37, "good"]], "notes": "upright at a desktop, profile; close-ups before 7 s and after 37 s ignored" },
+    { "id": "px8102853", "source": "pexels", "page": "https://www.pexels.com/video/8102853/", "view": "side", "holdout": true, "segments": [[0, 27.5, "bad"]], "notes": "hunched over a keyboard, profile" },
+    { "id": "px8102852", "source": "pexels", "page": "https://www.pexels.com/video/8102852/", "view": "side", "holdout": false, "segments": [[0, 10.5, "bad"]], "notes": "hunched typing, then leans back in the chair (reclined part ignored)" },
+    { "id": "px7652748", "source": "pexels", "page": "https://www.pexels.com/video/7652748/", "view": "side", "holdout": false, "segments": [[0, 6.1, "bad"]], "notes": "hunched over a laptop, head forward" },
+    { "id": "mk39854", "source": "mixkit", "page": "https://mixkit.co/free-stock-video/exhausted-man-working-in-an-office-overtime-39854/", "view": "side", "holdout": false, "segments": [[0, 12, "bad"]], "notes": "rear three-quarter, leaning in toward the monitor; vertical" }
+  ]
+}

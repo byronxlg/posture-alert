@@ -1,0 +1,9 @@
+node_modules
+dist
+public/wasm
+public/models/pose_landmarker_lite.task
+public/models/pose_landmarker_heavy.task
+eval/videos
+eval/out
+tmp
+.DS_Store
