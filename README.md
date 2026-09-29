@@ -16,10 +16,14 @@ device, and nothing is stored except your settings.
   the tab is in the background, and the tab title and icon change. Monitoring keeps running
   in a background tab: browsers pause animation frames there, so a worker timer drives the
   loop at about 2 frames a second until the tab is visible again.
-- Live skeleton and metrics over the video (under it on a phone), a status and slouch meter, session stats (share of
-  time upright, alerts) and a timeline of the last hour.
-- Settings (kept in localStorage): sensitivity, alert delay, sound and volume, notifications,
-  break reminders, skeleton on or off.
+- One status you can read from across the desk: Upright, Slouching (with a countdown ring to the
+  alert), Sit up, or Not in view.
+- A session summary: share of the time upright, time upright and slouching, longest upright
+  stretch, alerts, and a timeline of the last hour with a time axis.
+- Settings (kept in localStorage) in a sheet: sensitivity (Relaxed, Balanced, Strict) and alert
+  delay (5, 10, 30 s) as simple choices, with a fine-tune slider once you pick one; chime,
+  notifications and break reminders as switches, with volume and interval under them. Advanced:
+  skeleton on the video, and the measurements behind each verdict.
 - "Try the sample video" shows it working without a webcam.
 
 ## How detection works
