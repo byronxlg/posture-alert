@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Engine, type Snapshot } from "./engine.ts";
 import { loadSettings, saveSettings, type Settings } from "./settings.ts";
 import { chime, requestNotifications, unlockAudio } from "./alerts.ts";
 import { Timeline } from "./Timeline.tsx";
 import { SettingsPanel } from "./SettingsPanel.tsx";
 import { Plumb } from "./Plumb.tsx";
+import { formatDuration } from "./format.ts";
 
 const SAMPLE = `${import.meta.env.BASE_URL}sample/slouch-then-sit-up.mp4`;
 
@@ -14,6 +15,8 @@ export function App() {
   const engineRef = useRef<Engine | null>(null);
   const [settings, setSettings] = useState<Settings>(loadSettings);
   const [snap, setSnap] = useState<Snapshot | null>(null);
+  // The stage takes the video's own shape once it is known, so there are no letterbox bars.
+  const [aspect, setAspect] = useState(16 / 9);
 
   useEffect(() => {
     const e = new Engine(videoRef.current!, canvasRef.current!, settings, setSnap);
@@ -55,18 +58,38 @@ export function App() {
       <main className={live ? "work" : "intro"}>
         {!live && <Intro phase={phase} error={snap?.error ?? null} onStart={start} />}
 
-        <section className={`stage${snap?.source === "camera" ? " mirror" : ""}`} hidden={!live} aria-label="Camera view">
-          <video ref={videoRef} playsInline muted />
+        <div className="stage-col" hidden={!live} style={{ "--ar": aspect } as CSSProperties}>
+        <section
+          className={`stage${snap?.source === "camera" ? " mirror" : ""}`}
+          aria-label={snap?.source === "sample" ? "Sample video" : "Camera view"}
+        >
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            onLoadedMetadata={(e) => {
+              const v = e.currentTarget;
+              if (v.videoWidth && v.videoHeight) setAspect(v.videoWidth / v.videoHeight);
+            }}
+          />
           <canvas ref={canvasRef} />
-          {phase === "loading" && <div className="stage-note">Loading the pose model, about 9 MB the first time</div>}
+          {snap?.source === "sample" && phase !== "loading" && <p className="stage-tag">Sample video</p>}
+          {phase === "loading" && (
+            <div className="stage-note" role="status">
+              <span className="spinner" aria-hidden="true" />
+              <p>{snap?.source === "camera" ? "Starting the camera and loading the pose model" : "Loading the pose model"}</p>
+              <p className="stage-note-sub">About 9 MB the first time, cached after that</p>
+            </div>
+          )}
           {phase === "calibrating" && snap && (
             <div className="calibrate">
               <p className="calibrate-count">{Math.ceil(snap.calibrationLeftMs / 1000)}</p>
               <p>Sit up straight, shoulders relaxed, eyes on the screen. Hold it.</p>
             </div>
           )}
-          {phase === "monitoring" && snap?.metrics && <Readout snap={snap} />}
         </section>
+        {phase === "monitoring" && snap?.metrics && <Readout snap={snap} />}
+        </div>
 
         {live && snap && (
           <aside className="panel">
@@ -74,7 +97,7 @@ export function App() {
             {snap.notice && <p className="notice">{snap.notice}</p>}
             {snap.breakDue && (
               <div className="break" role="status">
-                <p>Time for a break. Stand up and look at something far away for a minute.</p>
+                <p><strong>Time for a break.</strong> Stand up and look at something far away for a minute.</p>
                 <button onClick={() => engineRef.current?.dismissBreak()}>Done, back to work</button>
               </div>
             )}
@@ -82,10 +105,10 @@ export function App() {
             <div className="actions">
               {phase === "calibrating" ? (
                 <button className="quiet" onClick={() => engineRef.current?.skipCalibration()}>Skip calibration</button>
-              ) : snap.source === "camera" ? (
+              ) : snap.source === "camera" && phase === "monitoring" ? (
                 <button className="quiet" onClick={() => engineRef.current?.beginCalibration()}>Calibrate again</button>
               ) : null}
-              <button className="quiet" onClick={() => engineRef.current?.stop()}>Stop</button>
+              <button className="quiet" onClick={() => engineRef.current?.stop()}>{phase === "loading" ? "Cancel" : snap.source === "sample" ? "Stop the sample" : "Stop monitoring"}</button>
             </div>
             <SettingsPanel settings={settings} onChange={update} onTestSound={() => { unlockAudio(); chime(settings.volume); }} />
           </aside>
@@ -112,7 +135,12 @@ function Intro({ phase, error, onStart }: { phase: string; error: string | null;
           Posture Alert watches your head and shoulders through the webcam and chimes when you have been
           hunched for a while. The video is analysed inside this tab and never leaves your device.
         </p>
-        {phase === "error" && error && <p className="error" role="alert">{error}</p>}
+        {phase === "error" && error && (
+          <div className="error" role="alert">
+            <p className="error-head">Could not start</p>
+            <p>{error}</p>
+          </div>
+        )}
         <div className="cta">
           <button className="primary" onClick={() => onStart("camera")}>Start with my camera</button>
           <button className="secondary" onClick={() => onStart("sample")}>Try the sample video</button>
@@ -151,36 +179,44 @@ function HeroFigure() {
 function Status({ snap, alertDelay }: { snap: Snapshot; alertDelay: number }) {
   let head = "Looking for you";
   let sub = "Sit so your head and both shoulders are in the frame.";
-  if (snap.phase === "loading") { head = "Starting"; sub = "Loading the model and the camera."; }
-  else if (snap.phase === "calibrating") { head = "Hold still"; sub = "Measuring your upright posture."; }
-  else if (snap.verdict === "good") { head = "Upright"; sub = snap.calibrated ? "Matches your calibrated posture." : "Within the default range."; }
+  if (snap.phase === "loading") { head = "Starting"; sub = snap.source === "camera" ? "Waiting for the camera and the pose model." : "Waiting for the pose model."; }
+  else if (snap.phase === "calibrating") { head = "Hold still"; sub = "Measuring your upright posture as the baseline."; }
+  else if (snap.verdict === "good") { head = "Upright"; sub = snap.calibrated ? "Close to your calibrated posture." : "Close to typical upright posture."; }
   else if (snap.verdict === "bad") {
     head = snap.alerting ? "Sit up" : "Slouching";
     const left = Math.max(0, Math.ceil(alertDelay - snap.badForMs / 1000));
     sub = `${snap.reason ?? "Posture"}. ${snap.alerting ? "Straighten up and the alert clears." : `Alert in ${left} s if it continues.`}`;
   }
   const level = snap.smoothed === null ? 0 : Math.min(snap.smoothed / 1.5, 1);
+  const line = `${(1 / 1.5) * 100}%`;
   return (
-    <div className="status" aria-live="polite">
-      <h2>{head}</h2>
+    <div className="status">
+      <h2 aria-live="polite">{head}</h2>
       <p className="status-sub">{sub}</p>
-      <div className="meter" role="meter" aria-label="Slouch level" aria-valuemin={0} aria-valuemax={1.5} aria-valuenow={snap.smoothed ?? 0}>
-        <div className="meter-fill" style={{ width: `${level * 100}%` }} />
-        <div className="meter-mark" style={{ left: `${(1 / 1.5) * 100}%` }} />
-      </div>
-      <div className="meter-scale"><span>Upright</span><span>Alert line</span></div>
+      {snap.phase === "monitoring" && (
+        <>
+          <div className="meter" role="meter" aria-label="Slouch level" aria-valuemin={0} aria-valuemax={1.5} aria-valuenow={snap.smoothed ?? 0}>
+            <div className="meter-fill" style={{ width: `${level * 100}%` }} />
+            <div className="meter-mark" style={{ left: line }} />
+          </div>
+          <div className="meter-scale" aria-hidden="true">
+            <span>Upright</span>
+            <span className="meter-scale-line" style={{ left: line }}>Alert line</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
 function Readout({ snap }: { snap: Snapshot }) {
   const m = snap.metrics!;
-  const f = (v: number | null, d = 0, u = "") => (v === null ? "-" : `${v.toFixed(d)}${u}`);
+  const f = (v: number | null, d = 0, u = "") => (v === null ? "--" : `${v.toFixed(d)}${u}`);
   const rows = m.view === "front"
     ? [["Head pitch", f(m.pitch3d, 0, "°")], ["Head forward", f(m.headForward3d, 2)], ["Head tilt", f(m.headRoll === null ? null : Math.abs(m.headRoll), 0, "°")], ["Shoulders", f(m.shoulderRoll === null ? null : Math.abs(m.shoulderRoll), 0, "°")]]
     : [["Neck angle", f(m.neckIncline, 0, "°")], ["Head pitch", f(m.pitch3d, 0, "°")], ["Head forward", f(m.headForward3d, 2)], ["Torso lean", f(m.torso3d, 0, "°")]];
   return (
-    <dl className="readout">
+    <dl className="readout" aria-label="Measurements">
       <div><dt>View</dt><dd>{m.view === "front" ? "Front" : "Side"}</dd></div>
       {rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
     </dl>
@@ -191,7 +227,7 @@ function Session({ snap, onReset }: { snap: Snapshot; onReset: () => void }) {
   const { goodMs, badMs, awayMs, alerts } = snap.stats;
   const seen = goodMs + badMs;
   const pct = seen > 0 ? Math.round((100 * goodMs) / seen) : null;
-  const mins = useMemo(() => Math.floor((goodMs + badMs + awayMs) / 60000), [goodMs, badMs, awayMs]);
+  const total = useMemo(() => formatDuration(goodMs + badMs + awayMs), [goodMs, badMs, awayMs]);
   return (
     <div className="session">
       <div className="session-head">
@@ -199,10 +235,10 @@ function Session({ snap, onReset }: { snap: Snapshot; onReset: () => void }) {
         <button className="link" onClick={onReset}>Reset</button>
       </div>
       <p className="session-line">
-        <span className="big">{pct === null ? "-" : `${pct}%`}</span> of the time upright
+        <span className="big">{pct === null ? "--" : `${pct}%`}</span> of the time upright
       </p>
       <p className="session-meta">
-        {mins} min monitored, {alerts} {alerts === 1 ? "alert" : "alerts"}
+        {total} monitored, {alerts === 0 ? "no alerts" : `${alerts} ${alerts === 1 ? "alert" : "alerts"}`}
       </p>
       <Timeline data={snap.timeline} />
     </div>

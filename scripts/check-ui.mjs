@@ -1,6 +1,7 @@
 // Headless check of the app with a fake webcam fed from the sample clip.
 // Starts the camera flow and the sample flow, waits for landmarks, saves
-// desktop and mobile screenshots to tmp/, and fails on any console error.
+// desktop and mobile screenshots to tmp/, checks the loop keeps running in a
+// hidden tab, and fails on any console error.
 // Usage: node scripts/check-ui.mjs [url]   (default: vite preview of dist/)
 import fs from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -56,6 +57,24 @@ async function run(name, viewport, flow) {
 await run("desktop-camera", { width: 1366, height: 820 }, "camera");
 await run("mobile-camera", { width: 390, height: 844 }, "camera");
 await run("desktop-sample", { width: 1366, height: 820 }, "sample");
+
+// A background tab: browsers pause requestAnimationFrame there, and the alerts
+// must keep working. Simulated by forcing document.hidden and stopping rAF.
+{
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.goto(`${url}?sample`);
+  await page.waitForFunction(() => window.postureEngine?.debug().posesSeen > 5, null, { timeout: 60000 });
+  await page.evaluate(() => { Object.defineProperty(document, "hidden", { get: () => true, configurable: true }); window.requestAnimationFrame = () => 0; });
+  await page.waitForTimeout(1000);
+  const n0 = await page.evaluate(() => window.postureEngine.debug().posesSeen);
+  await page.waitForTimeout(4000);
+  const n = (await page.evaluate(() => window.postureEngine.debug().posesSeen)) - n0;
+  const ok = n >= 3;
+  if (!ok) failed = true;
+  console.log(`hidden-tab: ${n} frames with a pose in 4 s${ok ? "" : "  FAILED"}`);
+  await ctx.close();
+}
 await browser.close();
 await server?.close();
 if (errors.length) { console.log("console errors:\n" + errors.join("\n")); failed = true; }

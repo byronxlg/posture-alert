@@ -68,6 +68,7 @@ export class Engine {
   private lastTick = 0;
   private lastEmit = 0;
   private lastSecond = 0;
+  private secondMs = { g: 0, b: 0, u: 0 };
   private lastAlertAt = 0;
   private lastBreakAt = 0;
   private awaySince: number | null = null;
@@ -77,6 +78,7 @@ export class Engine {
   private lastLm: Point[] | null = null;
   private posesSeen = 0;
   private runId = 0;
+  private ticker: { stop(): void } | null = null;
   snap: Snapshot;
 
   constructor(video: HTMLVideoElement, canvas: HTMLCanvasElement, settings: Settings, emit: (s: Snapshot) => void) {
@@ -174,7 +176,7 @@ export class Engine {
 
   skipCalibration() {
     this.monitor.setBaseline(null);
-    this.startMonitoring(false, "Using default thresholds. Calibrate for results tuned to your desk.");
+    this.startMonitoring(false, "Calibration skipped, so typical upright posture is the baseline. Calibrate again for a closer fit to how you sit.");
   }
 
   private startMonitoring(calibrated: boolean, notice: string | null) {
@@ -189,7 +191,7 @@ export class Engine {
       this.startMonitoring(true, null);
     } else {
       this.monitor.setBaseline(null);
-      this.startMonitoring(false, "Could not see your head and shoulders clearly, so default thresholds are in use. Sit so both shoulders are in view and calibrate again.");
+      this.startMonitoring(false, "Your head and shoulders were not clearly in view, so typical upright posture is the baseline. Sit so both shoulders show and calibrate again.");
     }
   }
 
@@ -199,6 +201,7 @@ export class Engine {
   }
 
   resetStats() {
+    this.secondMs = { g: 0, b: 0, u: 0 };
     this.set({ stats: freshStats(), timeline: "" });
   }
 
@@ -212,6 +215,8 @@ export class Engine {
 
   private stopMedia() {
     cancelAnimationFrame(this.raf);
+    this.ticker?.stop();
+    this.ticker = null;
     this.stream?.getTracks().forEach((t) => t.stop());
     this.stream = null;
     this.video.pause();
@@ -220,6 +225,8 @@ export class Engine {
     this.lastVideoTime = -1;
     this.lastOut = null;
     this.lastLm = null;
+    this.lastTick = 0;
+    this.secondMs = { g: 0, b: 0, u: 0 };
     this.monitor.reset();
     this.canvas.getContext("2d")?.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
@@ -231,6 +238,12 @@ export class Engine {
 
   private loop = () => {
     this.raf = requestAnimationFrame(this.loop);
+    this.ticker ??= startBackgroundTicker(() => { if (document.hidden) this.step(); });
+    this.step();
+  };
+
+  /** One frame: detect, score, draw, account. Driven by rAF, or by the ticker while the tab is hidden. */
+  private step() {
     const v = this.video;
     if (!this.landmarker || v.readyState < 2 || v.videoWidth === 0) return;
     if (v.currentTime === this.lastVideoTime) return;
@@ -281,7 +294,7 @@ export class Engine {
         badForMs: out.badForMs, alerting: out.alerting,
       });
     }
-  };
+  }
 
   private account(out: MonitorOutput, dt: number, now: number) {
     const st = { ...this.snap.stats };
@@ -311,10 +324,16 @@ export class Engine {
       if (this.settings.notify && document.hidden) notify("Time for a break", "Stand up, look away from the screen, move for a minute.");
     }
 
+    // One timeline entry per second, for whichever state held most of that second.
+    const key = out.verdict === "good" ? "g" : out.verdict === "bad" ? "b" : "u";
+    this.secondMs[key] += dt;
     let timeline = this.snap.timeline;
     if (now - this.lastSecond >= 1000) {
       this.lastSecond = now;
-      timeline = (timeline + (out.verdict === "good" ? "g" : out.verdict === "bad" ? "b" : "u")).slice(-TIMELINE_MAX);
+      const t = this.secondMs;
+      const top = t.g >= t.b && t.g >= t.u ? "g" : t.b >= t.u ? "b" : "u";
+      if (t.g + t.b + t.u > 0) timeline = (timeline + top).slice(-TIMELINE_MAX);
+      this.secondMs = { g: 0, b: 0, u: 0 };
     }
     this.snap = { ...this.snap, stats: st, timeline, breakDue };
   }
@@ -322,6 +341,27 @@ export class Engine {
   /** For the headless checks: the last monitor output and landmarks. */
   debug() {
     return { out: this.lastOut, landmarks: this.lastLm?.length ?? 0, posesSeen: this.posesSeen, phase: this.snap.phase, calibrationFrames: this.calSamples.length, calibrationUsable: this.calSamples.filter(Boolean).length };
+  }
+}
+
+/**
+ * Browsers pause requestAnimationFrame in a hidden tab, which would stop the
+ * monitoring exactly when the alerts matter most. A worker's timer keeps
+ * ticking in the background (main-thread timers are throttled much harder),
+ * so while the tab is hidden it drives the loop at about 2 frames a second.
+ * The monitor is time-based, so the lower frame rate does not change verdicts.
+ */
+const BACKGROUND_TICK_MS = 500;
+function startBackgroundTicker(tick: () => void): { stop(): void } {
+  try {
+    const url = URL.createObjectURL(new Blob([`setInterval(() => postMessage(0), ${BACKGROUND_TICK_MS});`], { type: "text/javascript" }));
+    const w = new Worker(url);
+    URL.revokeObjectURL(url);
+    w.onmessage = tick;
+    return { stop: () => w.terminate() };
+  } catch {
+    const id = setInterval(tick, BACKGROUND_TICK_MS);
+    return { stop: () => clearInterval(id) };
   }
 }
 
@@ -333,7 +373,10 @@ function describeError(e: unknown): string {
     return "Camera access is blocked. Allow the camera for this site in your browser's address bar, then start again.";
   if (name === "NotFoundError" || name === "OverconstrainedError")
     return "No camera found. Connect a webcam, or try the sample video instead.";
-  if (name === "NotReadableError")
+  if (name === "NotReadableError" || name === "AbortError")
     return "The camera is in use by another app. Close it there, then start again.";
-  return `Something stopped the camera or video (${name ?? "error"}). Reload the page and try again.`;
+  if (name === "NotSupportedError")
+    return "This browser cannot open a camera on this page. Try a current version of Chrome, Edge, Firefox or Safari, or try the sample video.";
+  console.warn("Posture Alert could not start:", e);
+  return "Something went wrong starting the camera or video. Reload the page and try again.";
 }
